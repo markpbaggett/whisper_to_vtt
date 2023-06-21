@@ -18,15 +18,17 @@ class Transcriber:
     def batch_transcribe(self):
         for dirpath, dirnames, filenames in os.walk(self.directory):
             for filename in tqdm(filenames):
-                self.__transcribe(f'{self.directory}/{filename}')
+                self.__transcribe(os.path.join(self.directory, filename))
+        return
 
     def __transcribe(self, file):
         model = whisper.load_model(self.model)
         result = model.transcribe(file, fp16=self.fp16, language=self.language)
-        if not os.path.exists(self.output):
-            os.makedirs(self.output)
+        os.makedirs(self.output, exist_ok=True)
+        output_file = f'{os.path.splitext(file)[0]}_{self.model}.vtt'
         writer = get_writer('vtt', self.output)
-        writer(result, f'{self.output}/{file.split(".")[0]}.vtt')
+        writer(result, output_file)
+        return
 
 
 if __name__ == "__main__":
