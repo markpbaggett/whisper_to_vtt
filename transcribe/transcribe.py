@@ -25,13 +25,13 @@ class Transcriber:
         for dirpath, dirnames, filenames in os.walk(self.output):
             for filename in filenames:
                 if filename.endswith('.vtt'):
-                    existing.append(os.path.splitext(filename)[0])
+                    existing.append(f'{os.path.splitext(filename)[0]}_{self.model}')
         return existing
 
     def batch_transcribe(self):
         for dirpath, dirnames, filenames in os.walk(self.directory):
             for filename in tqdm(filenames):
-                if os.path.splitext(filename)[0] not in self.existing:
+                if f'{os.path.splitext(filename)[0]}_{self.model}' not in self.existing:
                     self.__transcribe(os.path.join(self.directory, filename))
         return
 
