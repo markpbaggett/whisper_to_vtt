@@ -5,6 +5,7 @@ warnings.filterwarnings("ignore", message=".*The 'nopython' keyword.*")
 import os
 from tqdm import tqdm
 import whisper
+import shutil
 from whisper.utils import get_writer
 
 class Transcriber:
@@ -19,6 +20,7 @@ class Transcriber:
             self.existing = self.__cache_existing()
         else:
             self.existing = []
+        self.bad_directory
 
     def __cache_existing(self):
         existing = []
@@ -28,11 +30,20 @@ class Transcriber:
                     existing.append(f'{os.path.splitext(filename)[0]}_{self.model}')
         return existing
 
+    def move_bad_file(source, destination):
+        shutil.move(source, destination)
+    
     def batch_transcribe(self):
         for dirpath, dirnames, filenames in os.walk(self.directory):
             for filename in tqdm(filenames):
                 if f'{os.path.splitext(filename)[0]}_{self.model}' not in self.existing:
-                    self.__transcribe(os.path.join(self.directory, filename))
+                    try:
+                        self.__transcribe(os.path.join(self.directory, filename))
+                    except Exception:
+                        source_directory = 'directory/filename'
+                        destination_directory = 'fail_directory'
+                        move_bad_file(source_directory, destination_directory)
+                        
         return
 
     def __transcribe(self, file):
@@ -54,6 +65,7 @@ if __name__ == "__main__":
     parser.add_argument('-l', '--language', help='Specify language', default='English')
     parser.add_argument('-f', '--fp16', action='store_true', help='Use FP16 instead of FP32')
     parser.add_argument('-i', '--ignore_existing', action='store_true', help='Ignore A/V files that already have a transcription')
+    parser.add_argument('-b', '--bad_directory', help='Gives a directory to move erring files to.', required=False)
     args = parser.parse_args()
-    x = Transcriber(args.directory, args.output, args.model, args.language, args.fp16, args.ignore_existing)
+    x = Transcriber(args.directory, args.output, args.model, args.language, args.fp16, args.ignore_existing, args.bad_directory)
     x.batch_transcribe()
