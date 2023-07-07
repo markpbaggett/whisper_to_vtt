@@ -32,7 +32,10 @@ class Transcriber:
         for dirpath, dirnames, filenames in os.walk(self.directory):
             for filename in tqdm(filenames):
                 if f'{os.path.splitext(filename)[0]}_{self.model}' not in self.existing:
-                    self.__transcribe(os.path.join(self.directory, filename))
+                    try:
+                        self.__transcribe(os.path.join(self.directory, filename))
+                    except:
+                        print(f'Failed on {os.path.join(self.directory, filename)}')
         return
 
     def __transcribe(self, file):
