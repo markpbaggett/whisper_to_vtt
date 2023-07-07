@@ -25,7 +25,7 @@ class Transcriber:
         for dirpath, dirnames, filenames in os.walk(self.output):
             for filename in filenames:
                 if filename.endswith('.vtt'):
-                    existing.append(f'{os.path.splitext(filename)[0]}_{self.model}')
+                    existing.append(f'{os.path.splitext(filename)[0]}')
         return existing
 
     def batch_transcribe(self):
