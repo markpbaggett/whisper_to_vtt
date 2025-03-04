@@ -6,10 +6,21 @@ import os
 from tqdm import tqdm
 import whisper
 from whisper.utils import get_writer
+import time
+import logging
+
+# Configure logging
+logging.basicConfig(
+    filename="default.log",  # Log file name
+    level=logging.INFO,  # Log level
+    format="%(asctime)s - %(levelname)s - %(message)s",  # Log format
+)
+
 
 class Transcriber:
     def __init__(self, directory, output, language_model, language, fp16, ignore_existing=False):
         self.directory = directory
+        self.files_to_transcribe = (".mp3", ".mp4", ".avi", ".flac", ".mkv", ".wmv", ".wma", ".wav", ".webm")
         self.output = output
         self.model = language_model
         self.language = language
@@ -31,17 +42,32 @@ class Transcriber:
     def batch_transcribe(self):
         for dirpath, dirnames, filenames in os.walk(self.directory):
             for filename in tqdm(filenames):
-                if f'{os.path.splitext(filename)[0]}_{self.model}' not in self.existing:
+                if f'{os.path.splitext(filename)[0]}_{self.model}' not in self.existing and filename.endswith(self.files_to_transcribe):
+                    print(filename)
                     self.__transcribe(os.path.join(self.directory, filename))
+                else:
+                    print(f"Skipping {filename}:  already exists!")
         return
 
     def __transcribe(self, file):
         model = whisper.load_model(self.model)
-        result = model.transcribe(file, fp16=self.fp16, language=self.language)
+
+        start_time = time.time()
+
+        result = model.transcribe(file, fp16=self.fp16, language=self.language, word_timestamps=True)
+
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+
         os.makedirs(self.output, exist_ok=True)
         output_file = f'{os.path.splitext(file)[0]}_{self.model}.vtt'
         writer = get_writer('vtt', self.output)
+        writer_json = get_writer('json', self.output)
         writer(result, output_file)
+        writer_json(result, output_file.replace('.vtt', '.json'))
+
+        logging.info(f"Transcription completed for {file} in {elapsed_time:.2f} seconds.")
+
         return
 
 
