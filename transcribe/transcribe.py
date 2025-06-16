@@ -70,16 +70,19 @@ class Transcriber:
 
         return
 
-
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--directory', help='Specify directory to files.', required=True)
     parser.add_argument('-o', '--output', help='Specify output directory', default='output')
     parser.add_argument('-m', '--model', help='Specify model', default='base',
-                        choices=['tiny', 'base', 'small', 'medium', 'large'])
+                        choices=['tiny', 'base', 'small', 'medium', 'large', 'turbo'])
     parser.add_argument('-l', '--language', help='Specify language', default='English')
     parser.add_argument('-f', '--fp16', action='store_true', help='Use FP16 instead of FP32')
-    parser.add_argument('-i', '--ignore_existing', action='store_true', help='Ignore A/V files that already have a transcription')
+    parser.add_argument('-i', '--ignore_existing', action='store_true',
+                        help='Ignore A/V files that already have a transcription')
     args = parser.parse_args()
     x = Transcriber(args.directory, args.output, args.model, args.language, args.fp16, args.ignore_existing)
     x.batch_transcribe()
+
+if __name__ == "__main__":
+    main()
